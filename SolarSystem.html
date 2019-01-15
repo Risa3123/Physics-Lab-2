@@ -1,0 +1,235 @@
+
+<html>
+
+
+
+<style>
+
+#sun {
+    width: 570px;
+    height: 570px;
+    position: absolute;
+    background-color: yellow;
+    border-radius: 50%;
+    left: 115px;
+    top: 215px;
+}
+
+#html_mercury {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    background-color: grey;
+    border-radius: 50%;
+    left: 725px;
+    top: 500px;
+}
+
+#html_venus {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    background-color: orange;
+    border-radius: 50%;
+    left: 1235px;
+    top: 500px;
+}
+
+#html_earth {
+    width: 52px;
+    height: 52px;
+    position: absolute;
+    background-color: blue;
+    border-radius: 50%;
+    left: 1285px;
+    top: 500px;
+}
+
+#html_mars {
+    width: 27px;
+    height: 27px;
+    position: absolute;
+    background-color: red;
+    border-radius: 50%;
+    left: 1585px;
+    top: 500px;
+}
+
+#html_jupiter {
+    width: 57px;
+    height: 57px;
+    position: absolute;
+    background-color: rgb(255, 0, 221);
+    border-radius: 50%;
+    left: 3400px;
+    top: 500px;
+}
+
+
+
+</style>
+<body style="background-color: black">
+
+    <a style = color:white;font-size:3em>The Solar System</a>
+
+    <p>
+    <button onclick ="start()">Start</button>
+    </p>
+
+    <a style="font-size:2em;color: red" id = "time"></a> <br/>
+    <a style="font-size:2em;color: red" id = "distance"></a> <br/>
+    <a style="font-size:2em;color: red" id = "speed"></a>
+
+    <div>
+        <div id ="sun"></div>
+        <div id ="html_mercury" ></div>
+        <div id ="html_venus" ></div>
+        <div id ="html_earth"></div>
+        <div id ="html_mars" ></div>
+        <div id ="html_jupiter" ></div>
+
+    </div>
+
+    //2439.5-->10px
+
+    <script>
+
+        function make_vector(x_in,y_in){
+            let vector = {
+                x:x_in,
+                y:y_in,
+                add(v2){
+                    return make_vector(this.x + v2.x, this.y + v2.y);
+                },
+                sub(v2) {
+                    return make_vector(this.x - v2.x, this.y - v2.y);
+                },
+                sm(scalar) {
+                    return make_vector(this.x * scalar, this.y * scalar);
+                }, 
+                mag() {
+                    return Math.sqrt(Math.pow(this.x) + Math.pow(this.y));
+                }
+            };
+
+            return vector;
+
+        }
+
+
+
+        //Gravitaional Const
+        const G = 2000.0;
+
+        let sun = {
+            mass: 1.0,
+            r:make_vector(400.0,500.0),
+            v: make_vector(0.0,0.0),
+        };
+
+        let html_mercury = {
+            r:make_vector(725.0,500.0),
+            v: make_vector(0.0,0.0)
+        };
+
+        function make_planet(planet_name, orbital_r) {
+
+            //AU -> px
+            let au =500.0;
+
+            //Orbital Radius (AU -> px)
+            let distance = orbital_r*au;
+
+            //Mass (1-10)
+            let m = Math.random()*.09+0.01;
+
+            // Intial Position
+            let r0 = make_vector(distance+sun.r.x, sun.r.y)
+          
+            //Position relative to sun
+            let del0 = make_vector(r0.x-sun.r.x,r0.y-sun.r.y)
+
+            //Initial velocity of planet
+            let v0 = make_vector(0.0, Math.sqrt(G*sun.mass/del0.mag()));
+
+            //Define Planet Object
+            let planet = {
+                name:planet_name,
+                orbital_r:orbital_r,
+                mass:m,
+                r: r0,
+                v: v0
+                };
+
+            // Returns planet object
+            return planet;
+
+        }
+
+
+        let p_mercury = make_planet("Mercury",0.21);
+        let p_venus = make_planet("Venus",0.72);
+        let p_earth = make_planet("Earth",1.00);
+        let p_mars = make_planet("Mars",1.52);
+        let p_jupiter = make_planet("Jupiter",5.20);
+
+
+ function start() {
+   
+  
+        let html_mercury = document.getElementById("html_mercury");
+        let html_venus = document.getElementById("html_venus");
+        let html_earth = document.getElementById("html_earth");
+        let html_mars = document.getElementById("html_mars");
+        let html_jupiter = document.getElementById("html_jupiter");
+
+        //Time
+        let t = 0;
+        let dt = 0.1;
+
+        //Timer (ms)
+        let id1 = setInterval(function(){
+            frame(p_mercury,html_mercury);
+            frame(p_venus,html_venus);
+            frame(p_earth,html_earth);
+            frame(p_mars,html_mars);
+            frame(p_jupiter,html_jupiter);
+
+        }, 40); //40ms = 25 fps
+
+       
+            
+
+        function frame(planet,html_planet) {
+             
+                //Increment Time
+                t = t + dt;
+                document.getElementById("time").innerHTML = "t:" + Math.round(t);
+
+
+                //Position relative to sun
+                let del = make_vector(planet.x - sun.x, planet.y - sun.y);
+                let r = del.mag();      
+             
+                //Newtonian Gravity
+                let Fg = -G * (sun.mass * planet.mass)/Math.pow(r,2);
+                let a = make_vector((Fg / planet.mass)*(del.x.r / r), (Fg / planet.mass)*(del.y.r / r));
+
+
+                //Update velocity
+                planet.v = planet.v.add(a.sm(dt));
+
+                //update position
+                planet.r = planet.r.add(planet.v.sm(dt));
+
+
+
+
+                html_planet.style.left = Math.round(planet.x -10.0) + 'px';
+                html_planet.style.top = Math.round(planet.y -10.0) + 'px';
+            }
+        }
+
+    </script>
+
+</body>
